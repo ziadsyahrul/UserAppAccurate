@@ -115,4 +115,10 @@ dependencies {
 
     debugImplementation(libs.chucker.library)
     releaseImplementation(libs.chucker.noop)
-}
+
+    // testing
+    testImplementation(libs.junit)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.mockk)
+    testImplementation(libs.turbine)
+    testImplementation(libs.truth)}
