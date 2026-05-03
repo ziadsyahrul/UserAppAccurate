@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
@@ -76,6 +77,12 @@ fun UserListScreen(
     val selectedCity by viewModel.selectedCity.collectAsStateWithLifecycle()
     val sortAscending by viewModel.sortAscending.collectAsStateWithLifecycle()
     val syncState by viewModel.syncState.collectAsStateWithLifecycle()
+
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(users) {
+        listState.scrollToItem(0)
+    }
 
     var showFilterSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
@@ -185,7 +192,13 @@ fun UserListScreen(
                         selected = true,
                         onClick = { viewModel.onCityFilterChange("") },
                         label = { Text(selectedCity) },
-                        trailingIcon = { Icon(Icons.Default.Close, contentDescription = null, Modifier.size(16.dp)) }
+                        trailingIcon = {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = null,
+                                Modifier.size(16.dp)
+                            )
+                        }
                     )
                 }
             }
@@ -202,35 +215,42 @@ fun UserListScreen(
                         CircularProgressIndicator()
                     }
                 }
+
                 is UserListState.Error -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.WifiOff, contentDescription = null,
+                            Icon(
+                                Icons.Default.WifiOff, contentDescription = null,
                                 modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.outline)
+                                tint = MaterialTheme.colorScheme.outline
+                            )
                             Spacer(Modifier.height(16.dp))
                             Text("No data available", style = MaterialTheme.typography.bodyLarge)
                             TextButton(onClick = { viewModel.syncData() }) { Text("Retry") }
                         }
                     }
                 }
+
                 is UserListState.Success -> {
                     if (state.users.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Default.SearchOff, contentDescription = null,
+                                Icon(
+                                    Icons.Default.SearchOff, contentDescription = null,
                                     modifier = Modifier.size(64.dp),
-                                    tint = MaterialTheme.colorScheme.outline)
+                                    tint = MaterialTheme.colorScheme.outline
+                                )
                                 Spacer(Modifier.height(8.dp))
                                 Text("No users found")
                             }
                         }
                     } else {
                         LazyColumn(
+                            state = listState,
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(state.users, key = { it.id }) { user ->
+                            items(state.users) { user ->
                                 UserCard(user = user)
                             }
                         }
@@ -248,8 +268,10 @@ fun UserListScreen(
             sheetState = sheetState
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Filter by City", style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold)
+                Text(
+                    "Filter by City", style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
                 Spacer(Modifier.height(12.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
